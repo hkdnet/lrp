@@ -7,10 +7,10 @@ class MyParser
 
   STATES = [
     #     n          +              (           )              $            E
-    [[:shift, 2],          nil, [:shift, 3],          nil,          nil,  [:state, 1]], # 0
+    [[:shift, 2],          nil, [:shift, 3],          nil,          nil,  [:shift, 1]], # 0
     [        nil,  [:shift, 4],         nil,          nil,    [:accept],          nil], # 1
     [        nil, [:reduce, 0],         nil, [:reduce, 0], [:reduce, 0],          nil], # 2
-    [[:shift, 2],          nil, [:shift, 3],          nil,          nil,  [:state, 5]], # 3
+    [[:shift, 2],          nil, [:shift, 3],          nil,          nil,  [:shift, 5]], # 3
     [[:shift, 6],          nil,         nil,          nil,          nil,          nil], # 4
     [        nil,  [:shift, 4],         nil,  [:shift, 7],          nil,          nil], # 5
     [        nil, [:reduce, 1],         nil, [:reduce, 1], [:reduce, 1],          nil], # 6
@@ -81,9 +81,7 @@ class MyParser
           raise "reduce failed"
         end
       end
-      action_after_reduction = STATES[peek][TOKEN_TO_IDX.fetch(v)]
-      push(v)
-      execute(action_after_reduction)
+      @tokens.unshift(v)
     in [:accept]
       return :accepted
     end
