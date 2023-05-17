@@ -13,8 +13,8 @@ class MyParser
     [[:shift, 2],          nil, [:shift, 3],          nil,          nil,  [:state, 5]], # 3
     [[:shift, 6],          nil,         nil,          nil,          nil,          nil], # 4
     [        nil,  [:shift, 4],         nil,  [:shift, 7],          nil,          nil], # 5
-    [        nil, [:reduce, 1],         nil, [:reduce, 1],          nil, [:reduce, 1]], # 6
-    [        nil, [:reduce, 2],         nil, [:reduce, 2],          nil, [:reduce, 2]], # 7
+    [        nil, [:reduce, 1],         nil, [:reduce, 1], [:reduce, 1],          nil], # 6
+    [        nil, [:reduce, 2],         nil, [:reduce, 2], [:reduce, 2],          nil], # 7
   ]
   TOKEN_TO_IDX = {
     IDNET_N => 0,
