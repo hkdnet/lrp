@@ -1,5 +1,5 @@
 class MyParser
-  IDNET_N = "n"
+  IDENT_N = "n"
   PLUS = "+"
   L_PAREN = "("
   R_PAREN = ")"
@@ -28,7 +28,7 @@ class MyParser
     [        nil, [:reduce, 2],         nil, [:reduce, 2], [:reduce, 2],          nil], # 7
   ]
   TOKEN_TO_IDX = {
-    IDNET_N => 0,
+    IDENT_N => 0,
     PLUS => 1,
     L_PAREN => 2,
     R_PAREN => 3,
@@ -147,7 +147,7 @@ class MyParser
 
     str.chars.each do |c|
       case c
-      when IDNET_N, PLUS, L_PAREN, R_PAREN
+      when IDENT_N, PLUS, L_PAREN, R_PAREN
         tokens << Token.new(str: c, beg: [line, col], fin: [line, col + 1])
       when /\n/
         line += 1
