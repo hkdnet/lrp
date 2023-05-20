@@ -29,6 +29,7 @@ class MyParser
     {"E+n" => "E"},
     {"(E)" => "E"},
   ]
+  Token = Data.define(:str, :beg, :fin)
 
   def initialize(str, debug: false)
     @str = str
@@ -46,7 +47,7 @@ class MyParser
         p self
       end
 
-      idx = TOKEN_TO_IDX.fetch(tok)
+      idx = TOKEN_TO_IDX.fetch(tok.str)
       action = STATES[peek][idx]
       return :rejected if action.nil?
 
@@ -72,16 +73,19 @@ class MyParser
     in [:reduce, ri]
       rule = REDUCTION[ri]
       pat, v = rule.first
+      reduced = []
       pat.chars.reverse.each do |pat_c|
         pop # discard state
         c = peek
-        if pat_c == c
-          pop # discard the c
+        if pat_c == c.str
+          reduced << pop
         else
           raise "reduce failed"
         end
       end
-      @tokens.unshift(v)
+
+      new_token = Token.new(str: v, beg: reduced.map(&:beg).min, fin: reduced.map(&:fin).max)
+      @tokens.unshift(new_token)
     in [:accept]
       return :accepted
     end
@@ -102,18 +106,25 @@ class MyParser
   def lex(str)
     tokens = []
 
+    line = 1
+    col = 0
+
     str.chars.each do |c|
       case c
       when IDNET_N, PLUS, L_PAREN, R_PAREN
-        tokens << c
+        tokens << Token.new(str: c, beg: [line, col], fin: [line, col + 1])
+      when /\n/
+        line += 1
+        col = 0
       when /\s/
         # do nothing
       else
           raise "unknown char #{c}"
       end
+      col += 1
     end
 
-    tokens << INPUT_END
+    tokens << Token.new(str: INPUT_END, beg: [line, col], fin: [line, col + 1])
 
     tokens
   end
