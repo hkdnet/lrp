@@ -2,7 +2,10 @@ require "./my_parser"
 tests = [
   { input: "n", expected: :accepted },
   { input: "n + n", expected: :accepted },
+  { input: "n + n + n", expected: :accepted },
+  { input: "(n + n) + n", expected: :accepted },
   { input: "(n)", expected: :accepted },
+  { input: "((n))", expected: :accepted },
 ]
 
 tests.each do |t|
