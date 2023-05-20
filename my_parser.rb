@@ -5,6 +5,17 @@ class MyParser
   R_PAREN = ")"
   INPUT_END = "$"
 
+  Literal = Data.define(:token) do
+    def str
+      token.str
+    end
+  end
+  Add = Data.define(:token, :lhs, :rhs) do
+    def str
+      token.str
+    end
+  end
+
   STATES = [
     #     n          +              (           )              $            E
     [[:shift, 2],          nil, [:shift, 3],          nil,          nil,  [:shift, 1]], # 0
@@ -22,12 +33,22 @@ class MyParser
     L_PAREN => 2,
     R_PAREN => 3,
     INPUT_END => 4,
-    "E" => 5,
   }
   REDUCTION = [
-    {"n" => "E"},
-    {"E+n" => "E"},
-    {"(E)" => "E"},
+    {
+      token_strings: ["n"],
+      reduce: ->(tokens) {
+        Literal.new(token: tokens.first)
+      },
+    },
+    {
+      token_strings: ["E", "+", "n"],
+      reduce: ->(tokens) { Add.new(token: tokens[1], lhs: tokens[0], rhs: tokens[2]) },
+    },
+    {
+      token_strings: ["(", "E", ")"],
+      reduce: ->(tokens) { tokens[1] },
+    },
   ]
   Token = Data.define(:str, :beg, :fin)
 
@@ -46,8 +67,13 @@ class MyParser
         puts "rest tokens: #{@tokens.inspect}"
         p self
       end
-
-      idx = TOKEN_TO_IDX.fetch(tok.str)
+      idx =
+        case tok
+        in Token
+          TOKEN_TO_IDX.fetch(tok.str)
+        in Literal | Add
+          5
+        end
       action = STATES[peek][idx]
       return :rejected if action.nil?
 
@@ -74,17 +100,27 @@ class MyParser
       rule = REDUCTION[ri]
       pat, v = rule.first
       reduced = []
-      pat.chars.reverse.each do |pat_c|
+      rule[:token_strings].reverse.each do |pat_c|
         pop # discard state
         c = peek
-        if pat_c == c.str
-          reduced << pop
+        if pat_c == "E"
+          if c.is_a?(Literal) || c.is_a?(Add)
+            reduced << pop
+          else
+            raise "reduce failed"
+          end
         else
-          raise "reduce failed"
+          if pat_c == c.str
+            reduced << pop
+          else
+            raise "reduce failed"
+          end
         end
       end
 
-      new_token = Token.new(str: v, beg: reduced.map(&:beg).min, fin: reduced.map(&:fin).max)
+      reduced.reverse!
+
+      new_token = rule[:reduce].call(reduced)
       @tokens.unshift(new_token)
     in [:accept]
       return :accepted
